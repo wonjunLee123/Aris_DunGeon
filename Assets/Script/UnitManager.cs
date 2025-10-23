@@ -25,8 +25,12 @@ public class UnitManager : MonoBehaviour
 
     public Vector2Int WorldToTilePos(Vector2 worldPos)
     {
-        return Vector2Int.RoundToInt(worldPos);
+        return new Vector2Int(
+            Mathf.RoundToInt(worldPos.x),
+            Mathf.RoundToInt(worldPos.y)
+        );
     }
+
 
     public void RegisterUnit(Vector2Int tilePos, GameObject unit)
     {

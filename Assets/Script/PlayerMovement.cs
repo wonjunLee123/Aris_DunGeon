@@ -112,9 +112,13 @@ public class PlayerMovement : MonoBehaviour, ITurnActor
             yield return null;
         }
 
+        // ✅ 이동 끝나면 강제로 좌표 정수 단위로 스냅
+        transform.position = new Vector2(Mathf.Round(transform.position.x), Mathf.Round(transform.position.y));
+
         UnitManager.Instance.MoveUnit(currentTile, targetTile, gameObject);
         currentTile = targetTile;
     }
+
 
     public void ResetElements()
     {
