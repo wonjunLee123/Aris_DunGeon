@@ -145,20 +145,27 @@ public class DungeonGenerator2D : MonoBehaviour
         GameObject corridor = new GameObject("Corridor");
         corridor.transform.position = center;
 
+        // 🎨 복도 색상 (시각용)
         SpriteRenderer sr = corridor.AddComponent<SpriteRenderer>();
         sr.sprite = GenerateWhiteSprite();
-        sr.color = corridorColor;
+        sr.color = corridorColor; // 밝은 회색 등
 
+        // ✅ 복도도 Collider 추가 (막힘)
         BoxCollider2D col = corridor.AddComponent<BoxCollider2D>();
-        col.size = new Vector2(length, corridorWidth);
+        col.size = new Vector2(1f, 1f); // 기본 충돌 크기 (길이/폭은 scale로 결정됨)
 
+        // ✅ 복도 크기와 회전
         corridor.transform.localScale = new Vector3(length, corridorWidth, 1f);
         corridor.transform.rotation = Quaternion.Euler(0, 0, Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg);
 
-        corridor.tag = wallTag;
-        corridor.layer = LayerMask.NameToLayer(wallLayer);
+        // ✅ 복도도 벽으로 처리
+        corridor.tag = wallTag; // 예: "Unwalkable"
+        corridor.layer = LayerMask.NameToLayer(wallLayer); // 예: "Obstacle"
+
         corridor.transform.parent = this.transform;
     }
+
+
 
     Sprite GenerateWhiteSprite()
     {
