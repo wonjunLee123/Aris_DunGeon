@@ -10,6 +10,7 @@ public class PlayerMovement : MonoBehaviour, ITurnActor
 
     private CombatUnit combatUnit;
     private InventorySystem inventory;
+    private Animator anim;  // ✅ Animator 추가
 
     [Header("플레이어 속성")]
     public bool isFire;
@@ -22,11 +23,14 @@ public class PlayerMovement : MonoBehaviour, ITurnActor
     {
         combatUnit = GetComponent<CombatUnit>();
         inventory = GetComponent<InventorySystem>();
+        anim = GetComponentInChildren<Animator>(); // ✅ Animator 가져오기
 
         if (combatUnit == null)
             Debug.LogWarning("⚠️ CombatUnit 컴포넌트가 없습니다!");
         if (inventory == null)
             Debug.LogWarning("⚠️ InventorySystem 컴포넌트가 없습니다!");
+        if (anim == null)
+            Debug.LogWarning("⚠️ Animator를 찾을 수 없습니다!");
 
         ResetElements();
         StartCoroutine(Register());
@@ -34,7 +38,6 @@ public class PlayerMovement : MonoBehaviour, ITurnActor
 
     IEnumerator Register()
     {
-        // 매니저 준비 대기
         yield return new WaitUntil(() => TurnManager.Instance != null && UnitManager.Instance != null);
 
         currentTile = UnitManager.Instance.WorldToTilePos(transform.position);
@@ -55,6 +58,7 @@ public class PlayerMovement : MonoBehaviour, ITurnActor
         {
             Vector2Int direction = Vector2Int.zero;
 
+            // ✅ 이동 입력 감지
             if (Input.GetKeyDown(KeyCode.W)) direction = Vector2Int.up;
             else if (Input.GetKeyDown(KeyCode.S)) direction = Vector2Int.down;
             else if (Input.GetKeyDown(KeyCode.A)) direction = Vector2Int.left;
@@ -64,20 +68,22 @@ public class PlayerMovement : MonoBehaviour, ITurnActor
             else if (Input.GetKeyDown(KeyCode.Z)) direction = new Vector2Int(-1, -1);
             else if (Input.GetKeyDown(KeyCode.C)) direction = new Vector2Int(1, -1);
 
+            // ✅ 애니메이션 실행 (움직임 입력 있을 때)
+            anim?.SetBool("Run", direction != Vector2Int.zero);
+
             if (direction != Vector2Int.zero)
             {
                 Vector2Int targetTile = currentTile + direction;
 
-                // 벽 충돌
                 Collider2D wall = Physics2D.OverlapPoint((Vector2)targetTile);
                 if (wall != null && wall.CompareTag("Unwalkable"))
                 {
                     Debug.Log("🚫 이동 불가: 벽이 있음");
+                    anim?.SetBool("Run", false); // ✅ 이동 실패 시 멈춤
                     yield return null;
                     continue;
                 }
 
-                // 적 공격
                 GameObject targetUnit = UnitManager.Instance.GetUnitAtPosition(targetTile);
                 if (targetUnit != null && targetUnit.CompareTag("Enemy"))
                 {
@@ -90,13 +96,18 @@ public class PlayerMovement : MonoBehaviour, ITurnActor
                     {
                         Debug.LogWarning("⚠️ 공격 불가: CombatUnit이 누락됨");
                     }
+
+                    anim?.SetBool("Run", false); // 공격 후 멈춤
                     moved = true;
                     continue;
                 }
 
-                // 이동
                 yield return MoveTo(targetTile);
                 moved = true;
+            }
+            else
+            {
+                anim?.SetBool("Run", false);
             }
 
             yield return null;
@@ -112,13 +123,13 @@ public class PlayerMovement : MonoBehaviour, ITurnActor
             yield return null;
         }
 
-        // ✅ 이동 끝나면 강제로 좌표 정수 단위로 스냅
         transform.position = new Vector2(Mathf.Round(transform.position.x), Mathf.Round(transform.position.y));
 
         UnitManager.Instance.MoveUnit(currentTile, targetTile, gameObject);
         currentTile = targetTile;
-    }
 
+        anim?.SetBool("Run", false); // ✅ 이동 완료 후 애니메이션 멈춤
+    }
 
     public void ResetElements()
     {
