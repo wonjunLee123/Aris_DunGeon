@@ -12,12 +12,6 @@ public class PlayerMovement : MonoBehaviour, ITurnActor
     private InventorySystem inventory;
     private Animator anim;  // ✅ Animator 추가
 
-    [Header("플레이어 속성")]
-    public bool isFire;
-    public bool isWater;
-    public bool isWind;
-    public bool isLight;
-    public bool isDark;
 
     void Start()
     {
@@ -32,7 +26,6 @@ public class PlayerMovement : MonoBehaviour, ITurnActor
         if (anim == null)
             Debug.LogWarning("⚠️ Animator를 찾을 수 없습니다!");
 
-        ResetElements();
         StartCoroutine(Register());
     }
 
@@ -129,30 +122,5 @@ public class PlayerMovement : MonoBehaviour, ITurnActor
         currentTile = targetTile;
 
         anim?.SetBool("Run", false); // ✅ 이동 완료 후 애니메이션 멈춤
-    }
-
-    public void ResetElements()
-    {
-        isFire = isWater = isWind = isLight = isDark = false;
-    }
-
-    public void ApplyItem(ItemType itemType)
-    {
-        ResetElements();
-        switch (itemType)
-        {
-            case ItemType.FireSword:
-                isFire = true; Debug.Log("🔥 불 속성 활성화!"); break;
-            case ItemType.WaterSword:
-                isWater = true; Debug.Log("💧 물 속성 활성화!"); break;
-            case ItemType.WindSword:
-                isWind = true; Debug.Log("🌪 바람 속성 활성화!"); break;
-            case ItemType.LightSword:
-                isLight = true; Debug.Log("✨ 빛 속성 활성화!"); break;
-            case ItemType.DarkSword:
-                isDark = true; Debug.Log("🌑 어둠 속성 활성화!"); break;
-            default:
-                Debug.Log("속성 없음 (기본 상태)"); break;
-        }
     }
 }
