@@ -8,6 +8,10 @@ public class CombatUnit : MonoBehaviour
     public int currentHP = 50;
     public int attackPower = 10;
 
+    [Header("UI")]
+    public HealthBarUI healthBarPrefab;
+    private HealthBarUI healthBarInstance;
+
     private PlayerA playerA;
     private EnemyA enemyA;
 
@@ -24,6 +28,18 @@ public class CombatUnit : MonoBehaviour
             currentHP = maxHP;
             Debug.LogWarning($"{gameObject.name}의 HP가 0이어서 {maxHP}로 초기화되었습니다.");
         }
+
+        // ✅ 체력바 생성 및 초기화
+        if (healthBarPrefab != null)
+        {
+            Canvas uiCanvas = FindObjectOfType<Canvas>();
+            if (uiCanvas != null)
+            {
+                healthBarInstance = Instantiate(healthBarPrefab, uiCanvas.transform);
+                healthBarInstance.SetTarget(transform);
+                UpdateHealthUI();
+            }
+        }
     }
 
     public void Attack(CombatUnit target)
@@ -35,7 +51,6 @@ public class CombatUnit : MonoBehaviour
         int finalDamage = Mathf.RoundToInt(baseDamage * multiplier);
 
         Debug.Log($"{gameObject.name}이(가) {target.name}을(를) 공격! 피해: {finalDamage} (배율 {multiplier}x)");
-
         target.TakeDamage(finalDamage);
     }
 
@@ -72,10 +87,26 @@ public class CombatUnit : MonoBehaviour
     public void TakeDamage(int damage)
     {
         currentHP -= damage;
+        currentHP = Mathf.Clamp(currentHP, 0, maxHP);
         Debug.Log($"{gameObject.name}이(가) {damage}의 피해를 입음 (남은 HP: {currentHP})");
+
+        UpdateHealthUI();
 
         if (currentHP <= 0)
             Die();
+    }
+
+    public void Heal(int amount)
+    {
+        currentHP = Mathf.Min(currentHP + amount, maxHP);
+        Debug.Log($"{gameObject.name}이(가) 체력 {amount} 회복 (현재 {currentHP}/{maxHP})");
+        UpdateHealthUI();
+    }
+
+    void UpdateHealthUI()
+    {
+        if (healthBarInstance != null)
+            healthBarInstance.SetFill((float)currentHP / maxHP);
     }
 
     void Die()
@@ -91,18 +122,12 @@ public class CombatUnit : MonoBehaviour
         if (actor != null && TurnManager.Instance != null)
             TurnManager.Instance.Unregister(actor);
 
-        // ✅ 플레이어면 턴 매니저에 게임오버 알림
         if (CompareTag("Player"))
             TurnManager.Instance?.OnPlayerDied();
 
-        gameObject.SetActive(false); // 적/플레이어 공통 비활성화
-    }
+        if (healthBarInstance != null)
+            Destroy(healthBarInstance.gameObject);
 
-
-
-    public void Heal(int amount)
-    {
-        currentHP = Mathf.Min(currentHP + amount, maxHP);
-        Debug.Log($"{gameObject.name}이(가) 체력 {amount} 회복 (현재 {currentHP}/{maxHP})");
+        gameObject.SetActive(false);
     }
 }

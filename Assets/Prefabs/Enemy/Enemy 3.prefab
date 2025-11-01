@@ -83,7 +83,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 8596640243658272642, guid: 5d4daff38e3d9174b873918abcf2c1d4, type: 3}
-  m_Color: {r: 0.18867922, g: 0.18867922, b: 0.18867922, a: 1}
+  m_Color: {r: 0.6010442, g: 0, b: 0.7056604, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -168,6 +168,7 @@ MonoBehaviour:
   maxHP: 10
   currentHP: 10
   attackPower: 2
+  healthBarPrefab: {fileID: 0}
 --- !u!114 &6330180903787399161
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -222,7 +223,7 @@ Animator:
   m_GameObject: {fileID: 8439969099792086043}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 5dfdc948dd9c33649888af40626a679d, type: 2}
+  m_Controller: {fileID: 9100000, guid: b9dd3113ac79a854081aa66b06c2a233, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
