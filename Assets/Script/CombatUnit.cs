@@ -4,9 +4,17 @@ using Game.AttackElement;
 public class CombatUnit : MonoBehaviour
 {
     [Header("기본 스탯")]
+    public int level = 1;               // 🆕 현재 레벨
     public int maxHP = 50;
     public int currentHP = 50;
     public int attackPower = 10;
+
+    [Header("레벨업 설정")]
+    public int baseExpToLevelUp = 100;  // 1레벨 기준 필요 경험치
+    public float expGrowthRate = 1.5f;  // 필요 경험치 증가율 (다음 레벨로 갈수록 증가)
+    public float hpGrowthPerLevel = 10; // 레벨당 체력 증가량
+    public float atkGrowthPerLevel = 2; // 레벨당 공격력 증가량
+    private int currentExp = 0;         // 현재 경험치
 
     [Header("UI")]
     public HealthBarUI healthBarPrefab;
@@ -22,7 +30,6 @@ public class CombatUnit : MonoBehaviour
         playerA = GetComponent<PlayerA>();
         enemyA = GetComponent<EnemyA>();
 
-        // ✅ currentHP가 0 이하로 저장되어 있으면 자동 복구
         if (currentHP <= 0)
         {
             currentHP = maxHP;
@@ -44,14 +51,19 @@ public class CombatUnit : MonoBehaviour
 
     public void Attack(CombatUnit target)
     {
-        if (target == null || target == this) return; // 🔒 자기 자신 공격 방지
+        if (target == null || target == this) return;
 
         int baseDamage = attackPower;
         float multiplier = CalculateElementMultiplier(this, target);
         int finalDamage = Mathf.RoundToInt(baseDamage * multiplier);
 
         Debug.Log($"{gameObject.name}이(가) {target.name}을(를) 공격! 피해: {finalDamage} (배율 {multiplier}x)");
+
         target.TakeDamage(finalDamage);
+
+        // 🆕 경험치 획득 예시: 적이 죽었을 때만 플레이어가 경험치 획득
+        if (CompareTag("Player") && target.currentHP <= 0)
+            GainExp(50); // 예시로 50EXP
     }
 
     float CalculateElementMultiplier(CombatUnit attacker, CombatUnit defender)
@@ -70,7 +82,6 @@ public class CombatUnit : MonoBehaviour
 
         float mult = 1f;
 
-        // 🔄 속성 상성
         if (aFire && dWind) mult = 1.5f;
         else if (aWind && dWater) mult = 1.5f;
         else if (aWater && dFire) mult = 1.5f;
@@ -129,5 +140,33 @@ public class CombatUnit : MonoBehaviour
             Destroy(healthBarInstance.gameObject);
 
         gameObject.SetActive(false);
+    }
+
+    // 🆕 경험치 시스템
+    public void GainExp(int amount)
+    {
+        currentExp += amount;
+        int expToLevelUp = Mathf.RoundToInt(baseExpToLevelUp * Mathf.Pow(expGrowthRate, level - 1));
+
+        Debug.Log($"경험치 {amount} 획득! ({currentExp}/{expToLevelUp})");
+
+        if (currentExp >= expToLevelUp)
+        {
+            currentExp -= expToLevelUp;
+            LevelUp();
+        }
+    }
+
+    void LevelUp()
+    {
+        level++;
+        maxHP += Mathf.RoundToInt(hpGrowthPerLevel);
+        attackPower += Mathf.RoundToInt(atkGrowthPerLevel);
+        currentHP = maxHP; // 체력 완전 회복
+
+        Debug.Log($"🎉 레벨 업! {gameObject.name}이(가) {level}레벨이 되었습니다! " +
+                  $"HP: {maxHP}, ATK: {attackPower}");
+
+        UpdateHealthUI();
     }
 }
